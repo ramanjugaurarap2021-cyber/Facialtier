@@ -24,13 +24,15 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.9'
+
       - name: Build APK
+        working-directory: project
         run: |
-          GRADLEW=$(find project -name gradlew -type f | head -1)
-          echo "Found Gradle: $GRADLEW"
-          cd "$(dirname "$GRADLEW")"
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
