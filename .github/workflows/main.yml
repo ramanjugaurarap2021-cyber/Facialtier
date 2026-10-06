@@ -17,7 +17,7 @@ jobs:
           find project -maxdepth 3 -type f | head -50
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: uses: android-actions/setup-android@v4
         with:
           distribution: temurin
           java-version: '17'
