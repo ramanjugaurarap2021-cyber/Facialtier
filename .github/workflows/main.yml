@@ -14,7 +14,8 @@ jobs:
       - name: Extract project ZIP
         run: |
           unzip -o FacialTier_Android_Project.zip -d project
-          find project -maxdepth 4 -type f
+          echo "=== PROJECT FILES ==="
+          find project/facialtier_android -maxdepth 3 -type f
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -30,6 +31,34 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Create Gradle settings
+        run: |
+          cd project/facialtier_android
+
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "FacialTier"
+          include(":app")
+          EOF
+
+          echo "=== SETTINGS ==="
+          cat settings.gradle
+
       - name: Build APK
         working-directory: project/facialtier_android
         run: |
@@ -37,6 +66,7 @@ jobs:
 
       - name: Find APK
         run: |
+          echo "=== APK FILES ==="
           find project -type f -name "*.apk" -print
 
       - name: Upload APK
