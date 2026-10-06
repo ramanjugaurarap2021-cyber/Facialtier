@@ -14,6 +14,8 @@ jobs:
       - name: Extract project ZIP
         run: |
           unzip -o FacialTier_Android_Project.zip -d project
+          echo "Files extracted:"
+          find project -maxdepth 5 -type f | head -100
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -29,13 +31,35 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
-        working-directory: project
+      - name: Find Android project
+        id: find_project
         run: |
+          PROJECT_DIR=$(find project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            PROJECT_DIR=$(find project -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) -print -quit | xargs -r dirname)
+          fi
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: No Gradle project found."
+            find project -maxdepth 6 -type f
+            exit 1
+          fi
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Found Android project: $PROJECT_DIR"
+
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
           gradle assembleDebug
+
+      - name: Find APK
+        run: |
+          find . -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FacialTier-debug
-          path: project/**/build/outputs/apk/**/*.apk
+          path: "**/build/outputs/apk/**/*.apk"
